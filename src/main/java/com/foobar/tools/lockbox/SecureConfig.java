@@ -31,14 +31,6 @@ class SecureConfig {
     	protectedProps = false;
     }
    
-    public static void main(String args[]) throws Exception {
-    	SecureConfig foo = new SecureConfig();
-    	foo.Initialize("c:/temp/foo.properties", "This is a test".getBytes());
-    	Properties bar = foo.getProperties(true);
-		bar.list(System.out);
-		return;
-	}
-	
     public SecureConfig(String configFile, byte applicationKey[]) throws SecureConfigException {
         this.Initialize(configFile, applicationKey);
     }
