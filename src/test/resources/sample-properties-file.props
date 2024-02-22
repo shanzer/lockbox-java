@@ -1,0 +1,4 @@
+com.foobar.secureProperties.state=initialize
+com.foobar.secureProperties.recoverPassword=SetupPassword
+test.property.one="This is in the clear"
+PROTECT.property.two="This is encrypted"
