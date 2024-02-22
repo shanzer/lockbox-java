@@ -1,0 +1,11 @@
+This is not really a properties file.
+It is just going to have random text in it which is not
+valid for a properties file so we can see what happens
+I am now going to add a bunch of base64 encoded data for good measure
+
+VGhpcyBpcyBub3QgcmVhbGx5IGEgcHJvcGVydGllcyBmaWxlLgpJdCBpcyBqdXN0IGdvaW5nIHRv
+IGhhdmUgcmFuZG9tIHRleHQgaW4gaXQgd2hpY2ggaXMgbm90CnZhbGlkIGZvciBhIHByb3BlcnRp
+ZXMgZmlsZSBzbyB3ZSBjYW4gc2VlIHdoYXQgaGFwcGVucwpJIGFtIG5vdyBnb2luZyB0byBhZGQg
+YSBidW5jaCBvZiBiYXNlNjQgZW5jb2RlZCBkYXRhIGZvciBnb29kIG1lYXN1cmUK
+==
+=
