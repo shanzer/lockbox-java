@@ -5,6 +5,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -31,11 +32,18 @@ class SecureConfig {
     	protectedProps = false;
     }
    
-    public SecureConfig(String configFile, byte applicationKey[]) throws SecureConfigException {
+	public SecureConfig(String configFile, String applicationString) throws SecureConfigException, IOException, FileNotFoundException {
+		this.Initialize(configFile, applicationString);
+	}
+	public SecureConfig(String configFile, byte applicationKey[]) throws SecureConfigException, IOException, FileNotFoundException {
         this.Initialize(configFile, applicationKey);
     }
 
-    public void Initialize(String configFile, byte applicationKey[]) throws SecureConfigException {
+	public void Initialize(String configFile, String applicationString) throws SecureConfigException, IOException, FileNotFoundException {
+		this.Initialize(configFile, applicationString.getBytes());
+	}
+
+    public void Initialize(String configFile, byte applicationKey[]) throws SecureConfigException, IOException, FileNotFoundException {
     	this.propsFile = configFile;
         InputStream input = null;
         protectedProps = false;
@@ -51,14 +59,11 @@ class SecureConfig {
         	input = new FileInputStream(propsFile);
         	standardProps.load(input);
         } catch (IOException ex) {
-                throw new SecureConfigException(ex);
+			throw ex;
         } finally {
         	if (input != null) {
-        		try {
-        			input.close();
-        		} catch (IOException e) {
-        		}
-        	}
+    			input.close();
+       		}
         }
         String configState = standardProps.getProperty(ConfigConstants.SECURE_ENABLE_PROPS);
         if (configState == null) {
@@ -222,6 +227,10 @@ class SecureConfig {
     public void resetProtection(String password) throws SecureConfigException {
 
     }
+
+	public Properties getProperties() throws SecureConfigException {
+		return getProperties(false);
+	}
 
     public Properties getProperties(boolean allowRefresh) throws SecureConfigException {
     	if (protectedProps == false) {

@@ -50,7 +50,7 @@ public class CryptoUtils {
     		throw new IllegalArgumentException("Bad data passed into encrypt");
     	}
    		SecretKeySpec ss = new SecretKeySpec(key, "AES");
-   		Cipher aesCipher = Cipher.getInstance("AES/GCM/NoPadding");
+   		Cipher aesCipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
    		aesCipher.init(Cipher.ENCRYPT_MODE, ss, new IvParameterSpec(iv));
    		byte [] output = aesCipher.doFinal(data);
    		return output;
@@ -67,7 +67,7 @@ public class CryptoUtils {
     		throw new IllegalArgumentException("Bad data passed into decrypt");
     	}
    		SecretKeySpec ss = new SecretKeySpec(key, "AES");
-   		Cipher aesCipher = Cipher.getInstance("AES/GCM/NoPadding");
+   		Cipher aesCipher = Cipher.getInstance("AES/CBC/PkCS5Padding");
    		aesCipher.init(Cipher.DECRYPT_MODE, ss, new IvParameterSpec(iv));
    		try {
    			byte [] output = aesCipher.doFinal(data);
