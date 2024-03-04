@@ -9,6 +9,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
@@ -25,6 +26,8 @@ class SecureConfig {
     private String		propsFile;
     private boolean		protectedProps;
     private byte[]		aKey;
+	private static final byte[]	VERSION_ONE = { 0x00, 0x00, 0x00, 0x01};
+	private static final int	VERSION_ONE_IV_LENGTH = 16;
 
     public SecureConfig() {
     	standardProps = null;
@@ -199,15 +202,22 @@ class SecureConfig {
     	    lp.setProperty(ConfigConstants.SECURE_ENABLE_PROPS, "true");
     	    
     	    ByteArrayOutputStream bos = new ByteArrayOutputStream();
-    	    lockProps.store(bos,null);
+			lockProps.store(bos,null);
     	    // Just for some more obfucation we are going to encrypt the entire secure config part of the properties file 
     	    // using the application key and a hash of the application key as the IV. Not the best practice, but it works
     	    // for what we need.
     	    byte [] secureIV = CryptoUtils.GenerateRandomData(16);
     	    byte secureConfig[] = CryptoUtils.Encrypt(bos.toByteArray(), secureIV, aKey);
     	    bos.close();
-    	    lp.setProperty(ConfigConstants.SECURE_VAULT, Base64.getEncoder().encodeToString(secureConfig));
-    	    lp.setProperty(ConfigConstants.SECURE_VAULT_IV, Base64.getEncoder().encodeToString(secureIV));
+			bos = new ByteArrayOutputStream();
+			bos.write(VERSION_ONE);
+			bos.write(secureIV);
+			bos.write(secureConfig);
+			byte [] foo = bos.toByteArray();
+			if (foo == null) { throw new Exception("foo");}
+
+			lp.setProperty(ConfigConstants.SECURE_VAULT, Base64.getEncoder().encodeToString(bos.toByteArray()));
+			bos.close();
     	    FileOutputStream fos = null;
     	    try {
     	    	fos = new FileOutputStream(new File(this.propsFile));
@@ -238,19 +248,26 @@ class SecureConfig {
     	}
     	byte [] iv = null;
     	byte [] cipher = null;
+		byte [] block = null;
     	unlockedProps = new Properties();
     	Set<String> propKeys = standardProps.stringPropertyNames();
     	for(String pk : propKeys) {
     		if (pk.compareTo(ConfigConstants.SECURE_VAULT) == 0) {
-    			cipher = Base64.getDecoder().decode(standardProps.getProperty(ConfigConstants.SECURE_VAULT));
-    		} else if (pk.compareTo(ConfigConstants.SECURE_VAULT_IV) == 0) {
-    			iv = Base64.getDecoder().decode(standardProps.getProperty(ConfigConstants.SECURE_VAULT_IV));
+    			block = Base64.getDecoder().decode(standardProps.getProperty(ConfigConstants.SECURE_VAULT));
     		} else {
     			unlockedProps.setProperty(pk, standardProps.getProperty(pk));
     		}
     	}
     	ByteArrayInputStream bis = null;
     	try {
+			byte [] version = Arrays.copyOf(block, VERSION_ONE.length);
+			if (Arrays.equals(version, VERSION_ONE)) {
+				unlockedProps.setProperty(ConfigConstants.SECURE_PROPS_VERSION, "Protected Properties V1 (AES/CBC)");
+				iv = Arrays.copyOfRange(block, VERSION_ONE.length, VERSION_ONE.length + VERSION_ONE_IV_LENGTH);
+			} else {
+				throw new SecureConfigException("Bad Version in block");
+			}
+			cipher = Arrays.copyOfRange(block, version.length + iv.length, block.length);
     		byte clearProps[] = CryptoUtils.Decrypt(cipher, iv, aKey);
     		bis = new ByteArrayInputStream(clearProps);
     		Properties lockProps = new Properties();
